@@ -1,0 +1,171 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="ソース ファイル">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="ヘッダー ファイル">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="リソース ファイル">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="ソース ファイル\bilateral">
+      <UniqueIdentifier>{25e3549e-5c91-4de3-b05a-6a0f99bec88d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\bilateralNonLocalMeans">
+      <UniqueIdentifier>{76aa3759-739e-4a29-95e8-b6be20f899c5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\gaussianRange">
+      <UniqueIdentifier>{9c451cfe-bff1-4199-8b6a-e18197a7f857}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\nonLocalMeans">
+      <UniqueIdentifier>{86a568e4-38a1-4a48-a222-a85901529c33}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\util">
+      <UniqueIdentifier>{91606cdd-fdbe-49ab-9a4f-a156c9037d3f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\util">
+      <UniqueIdentifier>{1c3813d2-51d9-4757-ac05-93f4a2f0e931}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\test">
+      <UniqueIdentifier>{c83546b7-74bd-4351-a462-e9b41eaae727}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="avx_util.hpp">
+      <Filter>ヘッダー ファイル\util</Filter>
+    </ClInclude>
+    <ClInclude Include="color.h">
+      <Filter>ヘッダー ファイル\util</Filter>
+    </ClInclude>
+    <ClInclude Include="cpu_env.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="simd_util.h">
+      <Filter>ヘッダー ファイル\util</Filter>
+    </ClInclude>
+    <ClInclude Include="fmath.hpp">
+      <Filter>ヘッダー ファイル\util</Filter>
+    </ClInclude>
+    <ClInclude Include="test.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="kernel.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="filter.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="bilateralFilter_AVX.cpp">
+      <Filter>ソース ファイル\bilateral</Filter>
+    </ClCompile>
+    <ClCompile Include="bilateralFilter_AVX512.cpp">
+      <Filter>ソース ファイル\bilateral</Filter>
+    </ClCompile>
+    <ClCompile Include="bilateralFilter_Scalar.cpp">
+      <Filter>ソース ファイル\bilateral</Filter>
+    </ClCompile>
+    <ClCompile Include="bilateralFilter_SSE.cpp">
+      <Filter>ソース ファイル\bilateral</Filter>
+    </ClCompile>
+    <ClCompile Include="bilateralNonLocalMeansFilter_AVX.cpp">
+      <Filter>ソース ファイル\bilateralNonLocalMeans</Filter>
+    </ClCompile>
+    <ClCompile Include="bilateralNonLocalMeansFilter_AVX512.cpp">
+      <Filter>ソース ファイル\bilateralNonLocalMeans</Filter>
+    </ClCompile>
+    <ClCompile Include="bilateralNonLocalMeansFilter_Scalar.cpp">
+      <Filter>ソース ファイル\bilateralNonLocalMeans</Filter>
+    </ClCompile>
+    <ClCompile Include="bilateralNonLocalMeansFilter_SSE.cpp">
+      <Filter>ソース ファイル\bilateralNonLocalMeans</Filter>
+    </ClCompile>
+    <ClCompile Include="gaussianRangeFilter_AVX.cpp">
+      <Filter>ソース ファイル\gaussianRange</Filter>
+    </ClCompile>
+    <ClCompile Include="gaussianRangeFilter_AVX512.cpp">
+      <Filter>ソース ファイル\gaussianRange</Filter>
+    </ClCompile>
+    <ClCompile Include="gaussianRangeFilter_Scalar.cpp">
+      <Filter>ソース ファイル\gaussianRange</Filter>
+    </ClCompile>
+    <ClCompile Include="gaussianRangeFilter_SSE.cpp">
+      <Filter>ソース ファイル\gaussianRange</Filter>
+    </ClCompile>
+    <ClCompile Include="nonLocalMeansFilter_AVX.cpp">
+      <Filter>ソース ファイル\nonLocalMeans</Filter>
+    </ClCompile>
+    <ClCompile Include="nonLocalMeansFilter_AVX512.cpp">
+      <Filter>ソース ファイル\nonLocalMeans</Filter>
+    </ClCompile>
+    <ClCompile Include="nonLocalMeansFilter_Scalar.cpp">
+      <Filter>ソース ファイル\nonLocalMeans</Filter>
+    </ClCompile>
+    <ClCompile Include="nonLocalMeansFilter_SSE.cpp">
+      <Filter>ソース ファイル\nonLocalMeans</Filter>
+    </ClCompile>
+    <ClCompile Include="color.cpp">
+      <Filter>ソース ファイル\util</Filter>
+    </ClCompile>
+    <ClCompile Include="cpu_env.cpp">
+      <Filter>ソース ファイル\util</Filter>
+    </ClCompile>
+    <ClCompile Include="filterCore.cpp">
+      <Filter>ソース ファイル\util</Filter>
+    </ClCompile>
+    <ClCompile Include="util.cpp">
+      <Filter>ソース ファイル\util</Filter>
+    </ClCompile>
+    <ClCompile Include="simd_util.cpp">
+      <Filter>ソース ファイル\util</Filter>
+    </ClCompile>
+    <ClCompile Include="kernel.cpp">
+      <Filter>ソース ファイル\util</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="exTest_BF_AVX.cpp">
+      <Filter>ソース ファイル\test</Filter>
+    </ClCompile>
+    <ClCompile Include="exTest_BF_AVX512.cpp">
+      <Filter>ソース ファイル\test</Filter>
+    </ClCompile>
+    <ClCompile Include="exTest_BF_SSE.cpp">
+      <Filter>ソース ファイル\test</Filter>
+    </ClCompile>
+    <ClCompile Include="exTest_BNLMF_AVX.cpp">
+      <Filter>ソース ファイル\test</Filter>
+    </ClCompile>
+    <ClCompile Include="exTest_BNLMF_AVX512.cpp">
+      <Filter>ソース ファイル\test</Filter>
+    </ClCompile>
+    <ClCompile Include="exTest_BNLMF_SSE.cpp">
+      <Filter>ソース ファイル\test</Filter>
+    </ClCompile>
+    <ClCompile Include="exTest_GRF_AVX.cpp">
+      <Filter>ソース ファイル\test</Filter>
+    </ClCompile>
+    <ClCompile Include="exTest_GRF_AVX512.cpp">
+      <Filter>ソース ファイル\test</Filter>
+    </ClCompile>
+    <ClCompile Include="exTest_GRF_SSE.cpp">
+      <Filter>ソース ファイル\test</Filter>
+    </ClCompile>
+    <ClCompile Include="exTest_NLMF_AVX.cpp">
+      <Filter>ソース ファイル\test</Filter>
+    </ClCompile>
+    <ClCompile Include="exTest_NLMF_AVX512.cpp">
+      <Filter>ソース ファイル\test</Filter>
+    </ClCompile>
+    <ClCompile Include="exTest_NLMF_SSE.cpp">
+      <Filter>ソース ファイル\test</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
