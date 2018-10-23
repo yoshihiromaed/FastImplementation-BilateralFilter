@@ -7,7 +7,7 @@ Y. Maeda, N. Fukushima, and H. Matsuo, "Effective Implementation of Edge-Preserv
 ## Overview
 The code is fast implementation of bilateral filtering, non-local filtering, gaussian range filtering, bilateral non-local means filtering.
 
-The implementation is based on their naive algorithms; thus, accelerate algorithms, such as separable approaches and constant time algorithms, are not employed.
+The implementation is based on their naive algorithms; thus, their acceleration algorithms, such as separable approaches and constant time algorithms, are not employed.
 
 
 The code is written in C++ with SIMD intrinsic (SSE/AVX/AVX2/AVX512) and "Concurrency" parallel optimization.
