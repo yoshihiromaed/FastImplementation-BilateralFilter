@@ -38,7 +38,7 @@ cpu_env.h
 // non-local means filter
 #define __NLMF_PREVENTION__	1
 #define __NLMF_POSTVENTION__	0
-// gaussian non-local means filter
+// bilateral non-local means filter
 #define __BNLMF_PREVENTION__	1
 #define __BNLMF_POSTVENTION__	0
 ```
