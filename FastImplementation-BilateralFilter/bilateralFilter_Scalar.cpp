@@ -204,7 +204,7 @@ public:
 
 						float aw = space_weight[k] + (val - val0)*(val - val0) *gauss_range_coeff;
 #if __BF_PREVENTION__
-						aw = max(aw, EXP_ARGUMENT_CLIP_VALUE_SP));
+						aw = max(aw, EXP_ARGUMENT_CLIP_VALUE_SP);
 #endif
 						float w = exp(aw);
 #if __BF_POSTVENTION__
@@ -237,7 +237,7 @@ public:
 
 						float aw = space_weight[k] + ((b - b0)*(b - b0) + (g - g0)*(g - g0) + (r - r0)*(r - r0)) *gauss_range_coeff;
 #if __BF_PREVENTION__
-						aw = max(aw, EXP_ARGUMENT_CLIP_VALUE_SP));
+						aw = max(aw, EXP_ARGUMENT_CLIP_VALUE_SP);
 #endif
 						float w = exp(aw);
 #if __BF_POSTVENTION__

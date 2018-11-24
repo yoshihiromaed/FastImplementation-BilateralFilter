@@ -73,16 +73,16 @@
 #define EXP_ARGUMENT_CLIP_VALUE_DP (-708.3)	//ln(DBL_MIN)
 
 // Gaussian range filter
-#define __GRF_PREVENTION__	0
+#define __GRF_PREVENTION__	1
 #define __GRF_POSTVENTION__	0
 // bilateral filter
-#define __BF_PREVENTION__	0
+#define __BF_PREVENTION__	1
 #define __BF_POSTVENTION__	0
 // non-local means filter
-#define __NLMF_PREVENTION__	0
+#define __NLMF_PREVENTION__	1
 #define __NLMF_POSTVENTION__	0
 // gaussian non-local means filter
-#define __BNLMF_PREVENTION__	0
+#define __BNLMF_PREVENTION__	1
 #define __BNLMF_POSTVENTION__	0
 
 bool show_mxcsr(const bool showState = true, const bool showMask = false, const bool isClaer = false);

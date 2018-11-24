@@ -1,21 +1,20 @@
 # Fast Implementation of BilateralFilter
-This code is implimentation of the following paper:
+This code is implementation of the following paper:
 
-Y. Maeda, N. Fukushima, and H. Matsuo, "Effective Implementation of Edge-Preserving Filtering on CPU Microarchitectures," Applied Sciences, vol. 8, no. 10, July 2018. 
+Y. Maeda, N. Fukushima, and H. Matsuo, "Effective Implementation of Edge-Preserving Filtering on CPU Microarchitectures," Applied Sciences, vol. 8, no. 10, July 2018.
 [Paper](https://www.mdpi.com/2076-3417/8/10/1985)
 
 ## Overview
 The code is fast implementation of bilateral filtering, non-local filtering, gaussian range filtering, bilateral non-local means filtering.
 
-The implementation is based on their naive algorithms; thus, their acceleration algorithms, such as separable approaches and constant time algorithms, are not employed.
+The implementation is based on their naïve algorithms; thus, their acceleration algorithms, such as separable approaches and constant time algorithms, are not employed.
 
 
 The code is written in C++ with SIMD intrinsic (SSE/AVX/AVX2/AVX512) and "Concurrency" parallel optimization.
 
 ## Requirements
-* Visual Studio 2017
-* Intel Compiler 18
-* OpenCV 3.x
+* Compiler: Visual Studio 2017 or Intel Compiler 18
+* OpenCV 3.x, 4.x
 
 ## Usage
 cpu_env.h

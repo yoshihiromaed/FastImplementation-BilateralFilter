@@ -745,7 +745,7 @@ void ConsoleImage::operator()(const string src)
 	if (isLineNumber)strings.push_back(format("%2d ", count) + src);
 	else strings.push_back(src);
 
-	cv::putText(show, src, Point(20, 20 + count * 20), CV_FONT_HERSHEY_COMPLEX_SMALL, 1.0, CV_RGB(255, 255, 255), 1);
+	cv::putText(show, src, Point(20, 20 + count * 20), FONT_HERSHEY_COMPLEX_SMALL, 1.0, CV_RGB(255, 255, 255), 1);
 	count++;
 }
 void ConsoleImage::operator()(const char *format, ...)
@@ -762,7 +762,7 @@ void ConsoleImage::operator()(const char *format, ...)
 	if (isLineNumber)strings.push_back(cv::format("%2d ", count) + a);
 	else strings.push_back(a);
 
-	cv::putText(show, buff, Point(20, 20 + count * 20), CV_FONT_HERSHEY_COMPLEX_SMALL, 1.0, CV_RGB(255, 255, 255), 1);
+	cv::putText(show, buff, Point(20, 20 + count * 20), FONT_HERSHEY_COMPLEX_SMALL, 1.0, CV_RGB(255, 255, 255), 1);
 	count++;
 }
 
@@ -778,6 +778,6 @@ void ConsoleImage::operator()(const cv::Scalar color, const char *format, ...)
 	string a = buff;
 	if (isLineNumber)strings.push_back(cv::format("%2d ", count) + a);
 	else strings.push_back(a);
-	cv::putText(show, buff, Point(20, 20 + count * 20), CV_FONT_HERSHEY_COMPLEX_SMALL, 1.0, CV_RGB(255, 255, 255), 1);
+	cv::putText(show, buff, Point(20, 20 + count * 20), FONT_HERSHEY_COMPLEX_SMALL, 1.0, CV_RGB(255, 255, 255), 1);
 	count++;
 }
