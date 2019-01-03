@@ -1,3 +1,4 @@
+#include "cpu_env.h"
 #include "color.h"
 #include "filter.h"
 #include "fmath.hpp"
