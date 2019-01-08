@@ -7003,25 +7003,25 @@ public:
 					static const __m256 float_min = _mm256_set1_ps(FLT_MIN);
 #endif			
 #ifdef __UNROLL32_GRAY32F__
-					for (; j < size.width; j += 16)//32 pixel unit
+					for (; j < size.width; j += 32)//32 pixel unit
 					{
 						const int* ofs = &space_ofs[0];
 						const float* spw = space_distance;
 
 						const float* sptrj = sptr + j;
 						const __m256 sval0 = _mm256_load_ps(sptrj);
-						const __m256 sval1 = _mm256_load_ps(sptrj+8);
-						const __m256 sval2 = _mm256_load_ps(sptrj+16);
-						const __m256 sval3 = _mm256_load_ps(sptrj+24);
+						const __m256 sval1 = _mm256_load_ps(sptrj + 8);
+						const __m256 sval2 = _mm256_load_ps(sptrj + 16);
+						const __m256 sval3 = _mm256_load_ps(sptrj + 24);
 
 						__m256 tval = _mm256_setzero_ps();
 						__m256 wval = _mm256_setzero_ps();
 						__m256 tval1 = _mm256_setzero_ps();
 						__m256 wval1 = _mm256_setzero_ps();
-					//	__m256 tval2 = _mm256_setzero_ps();
-					//	__m256 wval2 = _mm256_setzero_ps();
-					//	__m256 tval3 = _mm256_setzero_ps();
-					//	__m256 wval3 = _mm256_setzero_ps();
+						__m256 tval2 = _mm256_setzero_ps();
+						__m256 wval2 = _mm256_setzero_ps();
+						__m256 tval3 = _mm256_setzero_ps();
+						__m256 wval3 = _mm256_setzero_ps();
 
 						for (k = 0; k < maxk; k++, ofs++, spw++)
 						{
@@ -7069,7 +7069,7 @@ public:
 							tval1 = _mm256_add_ps(_mm256_mul_ps(sref, _w), tval1);
 #endif
 							wval1 = _mm256_add_ps(wval1, _w);
-							/*
+
 							//=== unroll 2===========================================================
 							sref = _mm256_loadu_ps((sptrj + *ofs + 16));
 
@@ -7115,7 +7115,6 @@ public:
 							tval3 = _mm256_add_ps(_mm256_mul_ps(sref, _w), tval3);
 #endif
 							wval3 = _mm256_add_ps(wval3, _w);
-							*/
 						}
 						tval = _mm256_div_ps(tval, wval);
 						_mm256_stream_ps((dptr + j), tval);
@@ -7123,11 +7122,11 @@ public:
 						tval = _mm256_div_ps(tval1, wval1);
 						_mm256_stream_ps((dptr + j + 8), tval);
 
-						//tval = _mm256_div_ps(tval2, wval2);
-						//_mm256_stream_ps((dptr + j + 16), tval);
+						tval = _mm256_div_ps(tval2, wval2);
+						_mm256_stream_ps((dptr + j + 16), tval);
 
-						//tval = _mm256_div_ps(tval3, wval3);
-						//_mm256_stream_ps((dptr + j + 24), tval);
+						tval = _mm256_div_ps(tval3, wval3);
+						_mm256_stream_ps((dptr + j + 24), tval);
 					}
 				}
 #else
@@ -7170,7 +7169,7 @@ public:
 						tval = _mm256_div_ps(tval, wval);
 						_mm256_stream_ps((dptr + j), tval);
 					}
-				}
+			}
 #endif
 #endif
 				for (; j < size.width; j++)
