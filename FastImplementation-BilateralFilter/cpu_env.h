@@ -85,4 +85,6 @@
 #define __BNLMF_PREVENTION__	1
 #define __BNLMF_POSTVENTION__	0
 
+#define __UNROLL32_GRAY32F__	1
+
 bool show_mxcsr(const bool showState = true, const bool showMask = false, const bool isClaer = false);

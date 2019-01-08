@@ -1084,7 +1084,7 @@ class BilateralFilter_EXP_With_SpaceLUT_64f_InvokerAVX : public cv::ParallelLoop
 {
 public:
 	BilateralFilter_EXP_With_SpaceLUT_64f_InvokerAVX(Mat& _dest, const Mat& _temp, const int _radiusH, const int _radiusV, const int _maxk, const int* _space_ofs, const double* _space_weight, const double _sigma_range, const double exp_clip_val = -10000) :
-		temp(&_temp), dest(&_dest), radiusH(_radiusH), radiusV(_radiusV), maxk(_maxk), space_ofs(_space_ofs), space_weight(_space_weight), sigma_range(_sigma_range),exp_clip_val(exp_clip_val)
+		temp(&_temp), dest(&_dest), radiusH(_radiusH), radiusV(_radiusV), maxk(_maxk), space_ofs(_space_ofs), space_weight(_space_weight), sigma_range(_sigma_range), exp_clip_val(exp_clip_val)
 	{
 	}
 
@@ -1341,8 +1341,8 @@ private:
 class BilateralFilter_EXP_With_SpaceLUT_32f_InvokerAVX : public cv::ParallelLoopBody
 {
 public:
-	BilateralFilter_EXP_With_SpaceLUT_32f_InvokerAVX(Mat& _dest, const Mat& _temp, const int _radiusH, const int _radiusV, const int _maxk, const int* _space_ofs, const float* _space_weight, const float _sigma_range, const float exp_clip_val=-200) :
-		temp(&_temp), dest(&_dest), radiusH(_radiusH), radiusV(_radiusV), maxk(_maxk), space_ofs(_space_ofs), space_weight(_space_weight), sigma_range(_sigma_range),exp_clip_val(exp_clip_val)
+	BilateralFilter_EXP_With_SpaceLUT_32f_InvokerAVX(Mat& _dest, const Mat& _temp, const int _radiusH, const int _radiusV, const int _maxk, const int* _space_ofs, const float* _space_weight, const float _sigma_range, const float exp_clip_val = -200) :
+		temp(&_temp), dest(&_dest), radiusH(_radiusH), radiusV(_radiusV), maxk(_maxk), space_ofs(_space_ofs), space_weight(_space_weight), sigma_range(_sigma_range), exp_clip_val(exp_clip_val)
 	{
 	}
 
@@ -5028,6 +5028,109 @@ public:
 #if  __BF_POSTVENTION__	
 					static const __m256 float_min = _mm256_set1_ps(FLT_MIN);
 #endif
+#ifdef __UNROLL32_GRAY32F__
+					for (; j < size.width; j += 32)//8 pixel unit
+					{
+						const int* ofs = &space_ofs[0];
+						const float* spw = space_weight;
+
+						const float* sptrj = sptr + j;
+						const __m256 sval0 = _mm256_load_ps(sptrj);
+						const __m256 sval1 = _mm256_load_ps(sptrj + 8);
+						const __m256 sval2 = _mm256_load_ps(sptrj + 16);
+						const __m256 sval3 = _mm256_load_ps(sptrj + 24);
+
+						__m256 tval = _mm256_setzero_ps();
+						__m256 wval = _mm256_setzero_ps();
+
+						__m256 tval1 = _mm256_setzero_ps();
+						__m256 wval1 = _mm256_setzero_ps();
+						__m256 tval2 = _mm256_setzero_ps();
+						__m256 wval2 = _mm256_setzero_ps();
+						__m256 tval3 = _mm256_setzero_ps();
+						__m256 wval3 = _mm256_setzero_ps();
+
+						for (k = 0; k < maxk; k++, ofs++, spw++)
+						{
+							__m256 sref = _mm256_loadu_ps((sptrj + *ofs));
+							__m256i midx = _mm256_cvtps_epi32(_mm256_and_ps(_mm256_sub_ps(sval0, sref), *(const __m256*)v32f_absmask));
+
+							__m256 _sw = _mm256_set1_ps(*spw);
+							__m256 _w = _mm256_mul_ps(_sw, _mm256_i32gather_ps(range_weight, midx, 4));
+#if  __BF_POSTVENTION__	
+							_w = _mm256_max_ps(_w, float_min);
+#endif
+
+#if __USE_FMA_INSTRUCTION__
+							tval = _mm256_fmadd_ps(sref, _w, tval);
+#else
+							const __m256 sref_mul = _mm256_mul_ps(sref, _w);
+							tval = _mm256_add_ps(tval, sref_mul);
+#endif
+							wval = _mm256_add_ps(wval, _w);
+
+
+							// unroll 2
+							sref = _mm256_loadu_ps((sptrj + *ofs + 8));
+							midx = _mm256_cvtps_epi32(_mm256_and_ps(_mm256_sub_ps(sval1, sref), *(const __m256*)v32f_absmask));
+							_w = _mm256_mul_ps(_sw, _mm256_i32gather_ps(range_weight, midx, 4));
+#if  __BF_POSTVENTION__	
+							_w = _mm256_max_ps(_w, float_min);
+#endif
+#if __USE_FMA_INSTRUCTION__
+							tval1 = _mm256_fmadd_ps(sref, _w, tval1);
+#else
+							const __m256 sref_mul = _mm256_mul_ps(sref, _w);
+							tval = _mm256_add_ps(tval, sref_mul);
+#endif
+							wval1 = _mm256_add_ps(wval1, _w);
+
+							// unroll 3
+							sref = _mm256_loadu_ps((sptrj + *ofs + 16));
+							midx = _mm256_cvtps_epi32(_mm256_and_ps(_mm256_sub_ps(sval2, sref), *(const __m256*)v32f_absmask));
+							_w = _mm256_mul_ps(_sw, _mm256_i32gather_ps(range_weight, midx, 4));
+#if  __BF_POSTVENTION__	
+							_w = _mm256_max_ps(_w, float_min);
+#endif
+#if __USE_FMA_INSTRUCTION__
+							tval2 = _mm256_fmadd_ps(sref, _w, tval2);
+#else
+							const __m256 sref_mul = _mm256_mul_ps(sref, _w);
+							tval = _mm256_add_ps(tval, sref_mul);
+#endif
+							wval2 = _mm256_add_ps(wval2, _w);
+
+							// unroll 4
+							sref = _mm256_loadu_ps((sptrj + *ofs + 24));
+							midx = _mm256_cvtps_epi32(_mm256_and_ps(_mm256_sub_ps(sval3, sref), *(const __m256*)v32f_absmask));
+							_w = _mm256_mul_ps(_sw, _mm256_i32gather_ps(range_weight, midx, 4));
+#if  __BF_POSTVENTION__	
+							_w = _mm256_max_ps(_w, float_min);
+#endif
+#if __USE_FMA_INSTRUCTION__
+							tval3 = _mm256_fmadd_ps(sref, _w, tval3);
+#else
+							const __m256 sref_mul = _mm256_mul_ps(sref, _w);
+							tval = _mm256_add_ps(tval, sref_mul);
+#endif
+							wval3 = _mm256_add_ps(wval3, _w);
+
+
+						}
+						tval = _mm256_div_ps(tval, wval);
+						_mm256_stream_ps((dptr + j), tval);
+
+						tval = _mm256_div_ps(tval1, wval1);
+						_mm256_stream_ps((dptr + j + 8), tval);
+
+						tval = _mm256_div_ps(tval2, wval2);
+						_mm256_stream_ps((dptr + j + 16), tval);
+
+						tval = _mm256_div_ps(tval3, wval3);
+						_mm256_stream_ps((dptr + j + 24), tval);
+					}
+				}
+#else 
 					for (; j < size.width; j += 8)//8 pixel unit
 					{
 						const int* ofs = &space_ofs[0];
@@ -5061,7 +5164,8 @@ public:
 						tval = _mm256_div_ps(tval, wval);
 						_mm256_stream_ps((dptr + j), tval);
 					}
-				}
+			}
+#endif
 #endif
 				for (; j < size.width; j++)
 				{
@@ -6897,7 +7001,136 @@ public:
 					const __m256 mcoeff = _mm256_set1_ps(coeff);
 #if  __BF_POSTVENTION__	
 					static const __m256 float_min = _mm256_set1_ps(FLT_MIN);
+#endif			
+#ifdef __UNROLL32_GRAY32F__
+					for (; j < size.width; j += 16)//32 pixel unit
+					{
+						const int* ofs = &space_ofs[0];
+						const float* spw = space_distance;
+
+						const float* sptrj = sptr + j;
+						const __m256 sval0 = _mm256_load_ps(sptrj);
+						const __m256 sval1 = _mm256_load_ps(sptrj+8);
+						const __m256 sval2 = _mm256_load_ps(sptrj+16);
+						const __m256 sval3 = _mm256_load_ps(sptrj+24);
+
+						__m256 tval = _mm256_setzero_ps();
+						__m256 wval = _mm256_setzero_ps();
+						__m256 tval1 = _mm256_setzero_ps();
+						__m256 wval1 = _mm256_setzero_ps();
+					//	__m256 tval2 = _mm256_setzero_ps();
+					//	__m256 wval2 = _mm256_setzero_ps();
+					//	__m256 tval3 = _mm256_setzero_ps();
+					//	__m256 wval3 = _mm256_setzero_ps();
+
+						for (k = 0; k < maxk; k++, ofs++, spw++)
+						{
+							__m256 sref = _mm256_loadu_ps((sptrj + *ofs));
+
+							__m256 diff = _mm256_sub_ps(sval0, sref);
+							__m256 _sw = _mm256_mul_ps(_mm256_set1_ps(*spw), mcoeff);
+#if __USE_FMA_INSTRUCTION__
+							__m256 difft = _mm256_fmadd_ps(diff, diff, _sw);
+#else
+							__m256 difft = _mm256_add_ps(_mm256_mul_ps(diff, diff), _sw);
 #endif
+							__m256i midx = _mm256_cvtps_epi32(_mm256_rcp_ps(_mm256_rsqrt_ps(difft)));
+							__m256 _w = _mm256_i32gather_ps(weight, midx, 4);
+#if  __BF_POSTVENTION__	
+							_w = _mm256_max_ps(_w, float_min);
+#endif
+
+#if __USE_FMA_INSTRUCTION__
+							tval = _mm256_fmadd_ps(sref, _w, tval);
+#else
+							tval = _mm256_add_ps(_mm256_mul_ps(sref, _w), tval);
+#endif
+							wval = _mm256_add_ps(wval, _w);
+
+							//=== unroll 1===========================================================
+							sref = _mm256_loadu_ps((sptrj + *ofs + 8));
+
+							diff = _mm256_sub_ps(sval1, sref);
+							_sw = _mm256_mul_ps(_mm256_set1_ps(*spw), mcoeff);
+#if __USE_FMA_INSTRUCTION__
+							difft = _mm256_fmadd_ps(diff, diff, _sw);
+#else
+							difft = _mm256_add_ps(_mm256_mul_ps(diff, diff), _sw);
+#endif
+							midx = _mm256_cvtps_epi32(_mm256_rcp_ps(_mm256_rsqrt_ps(difft)));
+							_w = _mm256_i32gather_ps(weight, midx, 4);
+#if  __BF_POSTVENTION__	
+							_w = _mm256_max_ps(_w, float_min);
+#endif
+
+#if __USE_FMA_INSTRUCTION__
+							tval1 = _mm256_fmadd_ps(sref, _w, tval1);
+#else
+							tval1 = _mm256_add_ps(_mm256_mul_ps(sref, _w), tval1);
+#endif
+							wval1 = _mm256_add_ps(wval1, _w);
+							/*
+							//=== unroll 2===========================================================
+							sref = _mm256_loadu_ps((sptrj + *ofs + 16));
+
+							diff = _mm256_sub_ps(sval2, sref);
+							_sw = _mm256_mul_ps(_mm256_set1_ps(*spw), mcoeff);
+#if __USE_FMA_INSTRUCTION__
+							difft = _mm256_fmadd_ps(diff, diff, _sw);
+#else
+							difft = _mm256_add_ps(_mm256_mul_ps(diff, diff), _sw);
+#endif
+							midx = _mm256_cvtps_epi32(_mm256_rcp_ps(_mm256_rsqrt_ps(difft)));
+							_w = _mm256_i32gather_ps(weight, midx, 4);
+#if  __BF_POSTVENTION__	
+							_w = _mm256_max_ps(_w, float_min);
+#endif
+
+#if __USE_FMA_INSTRUCTION__
+							tval2 = _mm256_fmadd_ps(sref, _w, tval2);
+#else
+							tval2 = _mm256_add_ps(_mm256_mul_ps(sref, _w), tval2);
+#endif
+							wval2 = _mm256_add_ps(wval2, _w);
+
+							//=== unroll 3===========================================================
+							sref = _mm256_loadu_ps((sptrj + *ofs + 24));
+
+							diff = _mm256_sub_ps(sval3, sref);
+							_sw = _mm256_mul_ps(_mm256_set1_ps(*spw), mcoeff);
+#if __USE_FMA_INSTRUCTION__
+							difft = _mm256_fmadd_ps(diff, diff, _sw);
+#else
+							difft = _mm256_add_ps(_mm256_mul_ps(diff, diff), _sw);
+#endif
+							midx = _mm256_cvtps_epi32(_mm256_rcp_ps(_mm256_rsqrt_ps(difft)));
+							_w = _mm256_i32gather_ps(weight, midx, 4);
+#if  __BF_POSTVENTION__	
+							_w = _mm256_max_ps(_w, float_min);
+#endif
+
+#if __USE_FMA_INSTRUCTION__
+							tval3 = _mm256_fmadd_ps(sref, _w, tval3);
+#else
+							tval3 = _mm256_add_ps(_mm256_mul_ps(sref, _w), tval3);
+#endif
+							wval3 = _mm256_add_ps(wval3, _w);
+							*/
+						}
+						tval = _mm256_div_ps(tval, wval);
+						_mm256_stream_ps((dptr + j), tval);
+
+						tval = _mm256_div_ps(tval1, wval1);
+						_mm256_stream_ps((dptr + j + 8), tval);
+
+						//tval = _mm256_div_ps(tval2, wval2);
+						//_mm256_stream_ps((dptr + j + 16), tval);
+
+						//tval = _mm256_div_ps(tval3, wval3);
+						//_mm256_stream_ps((dptr + j + 24), tval);
+					}
+				}
+#else
 					for (; j < size.width; j += 8)//8 pixel unit
 					{
 						const int* ofs = &space_ofs[0];
@@ -6938,6 +7171,7 @@ public:
 						_mm256_stream_ps((dptr + j), tval);
 					}
 				}
+#endif
 #endif
 				for (; j < size.width; j++)
 				{
