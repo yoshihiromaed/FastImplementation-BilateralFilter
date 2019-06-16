@@ -115,14 +115,14 @@ namespace bf
 #endif
 				break;
 			}
-			case WEIGHT_VECTOR_EXP_WIHT_SPACE_LUT:
+			case WEIGHT_VECTOR_EXP_WITH_SPACE_LUT:
 			{
 				const string title = " EXP with space LUT";
 				ci((datatype == 0 ? "8U" : (datatype == 1 ? "32F" : "64F")) + title);
 #if CV_AVX512
 				CalcTime t;
 				// normal bilateral filter
-				bilateralFilter_AVX512(src, dest, Size(d, d), (double)sr, (double)ss, FILTER_RECTANGLE, BORDER_REPLICATE, WEIGHT_VECTOR_EXP_WIHT_SPACE_LUT);
+				bilateralFilter_AVX512(src, dest, Size(d, d), (double)sr, (double)ss, FILTER_RECTANGLE, BORDER_REPLICATE, WEIGHT_VECTOR_EXP_WITH_SPACE_LUT);
 				st.push_back(t.getTime());
 				ci(t.getTimeString());
 #else

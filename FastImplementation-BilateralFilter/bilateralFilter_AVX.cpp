@@ -7817,7 +7817,363 @@ private:
 	const float *weight, *space_distance;
 };
 
+class BilateralFilter_QuantizationRangeLUT_Gatherx1_KahanSummation_32f_InvokerAVX2 : public cv::ParallelLoopBody
+{
+public:
+	BilateralFilter_QuantizationRangeLUT_Gatherx1_KahanSummation_32f_InvokerAVX2(Mat& _dest, const Mat& _temp, const int _radiusH, const int _radiusV, const int _maxk, const int* _space_ofs, const float* _space_weight, const float* _range_weight) :
+		temp(&_temp), dest(&_dest), radiusH(_radiusH), radiusV(_radiusV), maxk(_maxk), space_ofs(_space_ofs), space_weight(_space_weight), range_weight(_range_weight)
+	{
+	}
 
+	void operator()(const Range& range) const override
+	{
+		int i, j, k;
+		const int cn = dest->channels();
+		const Size size = dest->size();
+
+#if CV_AVX2
+		static const int CV_DECL_ALIGNED(32) v32f_absmask[] = {
+			0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff, 0x7fffffff
+		};
+		const bool haveAVX = checkHardwareSupport(CV_CPU_AVX2);
+#endif
+		if (cn == 1)
+		{
+			float* sptr = (float*)temp->ptr<float>(range.start + radiusV) + 8 * (radiusH / 8 + 1);
+			float* dptr = dest->ptr<float>(range.start);
+
+			const int sstep = temp->cols;
+			const int dstep = dest->cols;
+
+			for (i = range.start; i != range.end; i++, dptr += dstep, sptr += sstep)
+			{
+				j = 0;
+#if CV_AVX2
+				if (haveAVX)
+				{
+#if  __BF_POSTVENTION__	
+					static const __m256 float_min = _mm256_set1_ps(FLT_MIN);
+#endif
+					for (; j < size.width; j += 32)//8 pixel unit
+					{
+						const int* ofs = &space_ofs[0];
+						const float* spw = space_weight;
+
+						const float* sptrj = sptr + j;
+						const __m256 sval0 = _mm256_load_ps(sptrj);
+						const __m256 sval1 = _mm256_load_ps(sptrj + 8);
+						const __m256 sval2 = _mm256_load_ps(sptrj + 16);
+						const __m256 sval3 = _mm256_load_ps(sptrj + 24);
+
+						__m256 tval0 = _mm256_setzero_ps();
+						__m256 wval0 = _mm256_setzero_ps();
+						__m256 tval1 = _mm256_setzero_ps();
+						__m256 wval1 = _mm256_setzero_ps();
+						__m256 tval2 = _mm256_setzero_ps();
+						__m256 wval2 = _mm256_setzero_ps();
+						__m256 tval3 = _mm256_setzero_ps();
+						__m256 wval3 = _mm256_setzero_ps();
+
+						__m256 ctval0 = _mm256_setzero_ps();
+						__m256 cwval0 = _mm256_setzero_ps();
+						__m256 ctval1 = _mm256_setzero_ps();
+						__m256 cwval1 = _mm256_setzero_ps();
+						__m256 ctval2 = _mm256_setzero_ps();
+						__m256 cwval2 = _mm256_setzero_ps();
+						__m256 ctval3 = _mm256_setzero_ps();
+						__m256 cwval3 = _mm256_setzero_ps();
+
+						__m256 y;
+						__m256 t;
+						for (k = 0; k < maxk; k++, ofs++, spw++)
+						{
+							__m256 sref = _mm256_loadu_ps((sptrj + *ofs));
+							__m256i midx = _mm256_cvtps_epi32(_mm256_and_ps(_mm256_sub_ps(sval0, sref), *(const __m256*)v32f_absmask));
+
+							__m256 _sw = _mm256_set1_ps(*spw);
+							__m256 _w = _mm256_mul_ps(_sw, _mm256_i32gather_ps(range_weight, midx, 4));
+#if  __BF_POSTVENTION__	
+							_w = _mm256_max_ps(_w, float_min);
+#endif
+
+#if __USE_FMA_INSTRUCTION__
+							y = _mm256_fmsub_ps(_w, sref, ctval0);
+							t = _mm256_add_ps(tval0, y);
+							ctval0 = _mm256_sub_ps(_mm256_sub_ps(t, tval0), y);
+							tval0 = t;
+#else
+							_mm256 wsref = _mm256_mul_ps(_w, sref);
+							y = _mm256_sub_ps(wsref, ctval0);
+							t = _mm256_add_ps(tval0, y);
+							ctval0 = _mm256_sub_ps(_mm256_sub_ps(t, tval0), y);
+							tval0 = t;
+#endif
+							y = _mm256_sub_ps(_w, cwval0);
+							t = _mm256_add_ps(wval0, y);
+							cwval0 = _mm256_sub_ps(_mm256_sub_ps(t, wval0), y);
+							wval0 = t;
+
+							// unroll 2
+							sref = _mm256_loadu_ps((sptrj + *ofs + 8));
+							midx = _mm256_cvtps_epi32(_mm256_and_ps(_mm256_sub_ps(sval1, sref), *(const __m256*)v32f_absmask));
+							_w = _mm256_mul_ps(_sw, _mm256_i32gather_ps(range_weight, midx, 4));
+#if  __BF_POSTVENTION__	
+							_w = _mm256_max_ps(_w, float_min);
+#endif
+#if __USE_FMA_INSTRUCTION__
+							y = _mm256_fmsub_ps(_w, sref, ctval1);
+							t = _mm256_add_ps(tval1, y);
+							ctval1 = _mm256_sub_ps(_mm256_sub_ps(t, tval1), y);
+							tval1 = t;
+#else
+							wsref = _mm256_mul_ps(_w, sref);
+							y = _mm256_sub_ps(wsref, ctval1);
+							t = _mm256_add_ps(tval1, y);
+							ctval1 = _mm256_sub_ps(_mm256_sub_ps(t, tval1), y);
+							tval1 = t;
+#endif
+							y = _mm256_sub_ps(_w, cwval1);
+							t = _mm256_add_ps(wval1, y);
+							cwval1 = _mm256_sub_ps(_mm256_sub_ps(t, wval1), y);
+							wval1 = t;
+
+							// unroll 3
+							sref = _mm256_loadu_ps((sptrj + *ofs + 16));
+							midx = _mm256_cvtps_epi32(_mm256_and_ps(_mm256_sub_ps(sval2, sref), *(const __m256*)v32f_absmask));
+							_w = _mm256_mul_ps(_sw, _mm256_i32gather_ps(range_weight, midx, 4));
+#if  __BF_POSTVENTION__	
+							_w = _mm256_max_ps(_w, float_min);
+#endif
+#if __USE_FMA_INSTRUCTION__
+							y = _mm256_fmsub_ps(_w, sref, ctval2);
+							t = _mm256_add_ps(tval2, y);
+							ctval2 = _mm256_sub_ps(_mm256_sub_ps(t, tval2), y);
+							tval2 = t;
+#else
+							wsref = _mm256_mul_ps(_w, sref);
+							y = _mm256_sub_ps(wsref, ctval2);
+							t = _mm256_add_ps(tval2, y);
+							ctval2 = _mm256_sub_ps(_mm256_sub_ps(t, tval2), y);
+							tval2 = t;
+#endif
+							y = _mm256_sub_ps(_w, cwval2);
+							t = _mm256_add_ps(wval2, y);
+							cwval2 = _mm256_sub_ps(_mm256_sub_ps(t, wval2), y);
+							wval2 = t;
+
+							// unroll 4
+							sref = _mm256_loadu_ps((sptrj + *ofs + 24));
+							midx = _mm256_cvtps_epi32(_mm256_and_ps(_mm256_sub_ps(sval3, sref), *(const __m256*)v32f_absmask));
+							_w = _mm256_mul_ps(_sw, _mm256_i32gather_ps(range_weight, midx, 4));
+#if  __BF_POSTVENTION__	
+							_w = _mm256_max_ps(_w, float_min);
+#endif
+#if __USE_FMA_INSTRUCTION__
+							y = _mm256_fmsub_ps(_w, sref, ctval3);
+							t = _mm256_add_ps(tval3, y);
+							ctval3 = _mm256_sub_ps(_mm256_sub_ps(t, tval3), y);
+							tval3 = t;
+#else
+							wsref = _mm256_mul_ps(_w, sref);
+							y = _mm256_sub_ps(wsref, ctval3);
+							t = _mm256_add_ps(tval3, y);
+							ctval3 = _mm256_sub_ps(_mm256_sub_ps(t, tval3), y);
+							tval3 = t;
+#endif
+							y = _mm256_sub_ps(_w, cwval3);
+							t = _mm256_add_ps(wval3, y);
+							cwval3 = _mm256_sub_ps(_mm256_sub_ps(t, wval3), y);
+							wval3 = t;
+						}
+						tval0 = _mm256_div_ps(tval0, wval0);
+						_mm256_stream_ps((dptr + j), tval0);
+
+						tval0 = _mm256_div_ps(tval1, wval1);
+						_mm256_stream_ps((dptr + j + 8), tval0);
+
+						tval0 = _mm256_div_ps(tval2, wval2);
+						_mm256_stream_ps((dptr + j + 16), tval0);
+
+						tval0 = _mm256_div_ps(tval3, wval3);
+						_mm256_stream_ps((dptr + j + 24), tval0);
+					}
+
+					/*for (; j < size.width; j += 8)//8 pixel unit
+					{
+						const int* ofs = &space_ofs[0];
+						const float* spw = space_weight;
+
+						const float* sptrj = sptr + j;
+						const __m256 sval0 = _mm256_load_ps(sptrj);
+
+						__m256 tval = _mm256_setzero_ps();
+						__m256 wval = _mm256_setzero_ps();
+
+						for (k = 0; k < maxk; k++, ofs++, spw++)
+						{
+							const __m256 sref = _mm256_loadu_ps((sptrj + *ofs));
+							const __m256i midx = _mm256_cvtps_epi32(_mm256_and_ps(_mm256_sub_ps(sval0, sref), *(const __m256*)v32f_absmask));
+
+							const __m256 _sw = _mm256_set1_ps(*spw);
+							__m256 _w = _mm256_mul_ps(_sw, _mm256_i32gather_ps(range_weight, midx, 4));
+#if  __BF_POSTVENTION__
+							_w = _mm256_max_ps(_w, float_min);
+#endif
+
+#if __USE_FMA_INSTRUCTION__
+							tval = _mm256_fmadd_ps(sref, _w, tval);
+#else
+							const __m256 sref_mul = _mm256_mul_ps(sref, _w);
+							tval = _mm256_add_ps(tval, sref_mul);
+#endif
+							wval = _mm256_add_ps(wval, _w);
+						}
+						tval = _mm256_div_ps(tval, wval);
+						_mm256_stream_ps((dptr + j), tval);
+					}*/
+				}
+#endif
+				for (; j < size.width; j++)
+				{
+					const float val0 = sptr[j];
+					float sum = 0.0f;
+					float wsum = 0.0f;
+					for (k = 0; k < maxk; k++)
+					{
+						const float val = sptr[j + space_ofs[k]];
+						const float w = space_weight[k] * range_weight[(uchar)abs(val - val0)];
+						sum += val * w;
+						wsum += w;
+					}
+					dptr[j] = sum / wsum;
+				}
+			}
+		}
+		else
+		{
+			const int sstep = 3 * temp->cols;
+			const int dstep = 3 * dest->cols;
+			float* sptrb = (float*)temp->ptr(3 * radiusV + 3 * range.start) + 8 * (radiusH / 8 + 1);
+			float* sptrg = (float*)temp->ptr(3 * radiusV + 3 * range.start + 1) + 8 * (radiusH / 8 + 1);
+			float* sptrr = (float*)temp->ptr(3 * radiusV + 3 * range.start + 2) + 8 * (radiusH / 8 + 1);
+
+			float* dptr = dest->ptr<float>(range.start);
+
+			for (i = range.start; i != range.end; i++, sptrr += sstep, sptrg += sstep, sptrb += sstep, dptr += dstep)
+			{
+				j = 0;
+#if CV_AVX2
+				if (haveAVX)
+				{
+#if  __BF_POSTVENTION__	
+					static const __m256 float_min = _mm256_set1_ps(FLT_MIN);
+#endif
+					for (; j < size.width; j += 8)//8 pixel unit
+					{
+						const int* ofs = &space_ofs[0];
+						const float* spw = space_weight;
+
+						const float* sptrbj = sptrb + j;
+						const float* sptrgj = sptrg + j;
+						const float* sptrrj = sptrr + j;
+
+						const __m256 bval0 = _mm256_load_ps(sptrbj);
+						const __m256 gval0 = _mm256_load_ps(sptrgj);
+						const __m256 rval0 = _mm256_load_ps(sptrrj);
+
+						__m256 wval = _mm256_setzero_ps();
+						__m256 bval = _mm256_setzero_ps();
+						__m256 gval = _mm256_setzero_ps();
+						__m256 rval = _mm256_setzero_ps();
+
+						for (k = 0; k < maxk; k++, ofs++, spw++)
+						{
+							const __m256 bref = _mm256_load_ps(sptrbj + *ofs);
+							const __m256 gref = _mm256_load_ps(sptrgj + *ofs);
+							const __m256 rref = _mm256_load_ps(sptrrj + *ofs);
+
+							const __m256 bdiff = _mm256_sub_ps(bval0, bref);
+							const __m256 gdiff = _mm256_sub_ps(gval0, gref);
+							const __m256 rdiff = _mm256_sub_ps(rval0, rref);
+							__m256 difft = _mm256_mul_ps(bdiff, bdiff);
+
+#if __USE_FMA_INSTRUCTION__
+							difft = _mm256_fmadd_ps(gdiff, gdiff, difft);
+							difft = _mm256_fmadd_ps(rdiff, rdiff, difft);
+#else
+							const __m256 gdiff_mul = _mm256_mul_ps(gdiff, gdiff);
+							difft = _mm256_add_ps(difft, gdiff_mul);
+							const __m256 rdiff_mul = _mm256_mul_ps(rdiff, rdiff);
+							difft = _mm256_add_ps(difft, rdiff_mul);
+#endif
+							difft = _mm256_rcp_ps(_mm256_rsqrt_ps(difft));
+							const __m256i midx = _mm256_cvtps_epi32(difft);
+							const __m256 _sw = _mm256_set1_ps(*spw);
+							__m256 _w = _mm256_mul_ps(_sw, _mm256_i32gather_ps(range_weight, midx, 4));
+#if  __BF_POSTVENTION__	
+							_w = _mm256_max_ps(_w, float_min);
+#endif
+
+#if __USE_FMA_INSTRUCTION__
+							bval = _mm256_fmadd_ps(bref, _w, bval);
+							gval = _mm256_fmadd_ps(gref, _w, gval);
+							rval = _mm256_fmadd_ps(rref, _w, rval);
+#else
+							const __m256 bref_mul = _mm256_mul_ps(bref, _w);
+							bval = _mm256_add_ps(bval, bref_mul);
+							const __m256 gref_mul = _mm256_mul_ps(gref, _w);
+							gval = _mm256_add_ps(gval, gref_mul);
+							const __m256 rref_mul = _mm256_mul_ps(rref, _w);
+							rval = _mm256_add_ps(rval, rref_mul);
+#endif
+							wval = _mm256_add_ps(wval, _w);
+						}
+						bval = _mm256_div_ps(bval, wval);
+						gval = _mm256_div_ps(gval, wval);
+						rval = _mm256_div_ps(rval, wval);
+
+						float* dptrc = dptr + 3 * j;
+						_mm256_stream_ps_color(dptrc, bval, gval, rval);
+					}
+				}
+#endif
+				for (; j < size.width; j++)
+				{
+					const float* sptrrj = sptrr + j;
+					const float* sptrgj = sptrg + j;
+					const float* sptrbj = sptrb + j;
+
+					const float r0 = sptrrj[0];
+					const float g0 = sptrgj[0];
+					const float b0 = sptrbj[0];
+
+					float sum_r = 0.0f, sum_b = 0.0f, sum_g = 0.0f;
+					float wsum = 0.0f;
+					for (k = 0; k < maxk; k++)
+					{
+						const float r = sptrrj[space_ofs[k]], g = sptrgj[space_ofs[k]], b = sptrbj[space_ofs[k]];
+						const float w = space_weight[k] * range_weight[(int)sqrt((b - b0) * (b - b0) + (g - g0) * (g - g0) + (r - r0) * (r - r0))];
+						sum_b += b * w;
+						sum_g += g * w;
+						sum_r += r * w;
+						wsum += w;
+					}
+					dptr[3 * j] = sum_b / wsum;
+					dptr[3 * j + 1] = sum_g / wsum;
+					dptr[3 * j + 2] = sum_r / wsum;
+				}
+			}
+		}
+	}
+
+private:
+	const Mat* temp;
+
+	Mat* dest;
+	int radiusH, radiusV, maxk;
+	const int* space_ofs;
+	const float *space_weight, *range_weight;
+};
 namespace bf
 {
 	void bilateralFilter_AVX_64f(const Mat& src, Mat& dst, const Size kernelSize, double sigma_range, double sigma_space, const int borderType, const bool isRectangle, const WEIGHT_MODE weightingMethod)
@@ -7876,7 +8232,7 @@ namespace bf
 			parallel_for_(Range(0, size.height), body);
 			break;
 		}
-		case WEIGHT_VECTOR_EXP_WIHT_SPACE_LUT:
+		case WEIGHT_VECTOR_EXP_WITH_SPACE_LUT:
 		{
 #if __BF_PREVENTION__
 			const double max_digits = floor(log2(DBL_MAX / (255.*kernelSize.area())) - log2(DBL_MIN));
@@ -8180,7 +8536,7 @@ namespace bf
 			parallel_for_(Range(0, size.height), body);
 			break;
 		}
-		case WEIGHT_VECTOR_EXP_WIHT_SPACE_LUT:
+		case WEIGHT_VECTOR_EXP_WITH_SPACE_LUT:
 		{
 #if __BF_PREVENTION__
 			const float max_digits = floor(log2(FLT_MAX / (255.f*kernelSize.area())) - log2(FLT_MIN));
@@ -8392,6 +8748,7 @@ namespace bf
 			break;
 		}
 		case WEIGHT_MERGER_QUANTIZATION_LUT_GATHER:
+		case WEIGHT_RANGE_QUANTIZATION_LUT_GATHER_KAHAN:
 		{
 			// initialize space-related bilateral filter coefficients
 			int maxk = 0;
@@ -8418,8 +8775,16 @@ namespace bf
 #endif
 			}
 
-			const BilateralFilter_QuantizationLUT_Gatherx1_32f_InvokerAVX2 body(dest, temp, radiusH, radiusV, maxk, space_ofs, sigma_range, sigma_space, space_weight, range_weight);
-			parallel_for_(Range(0, size.height), body);
+			if (weightingMethod == WEIGHT_RANGE_QUANTIZATION_LUT_GATHER_KAHAN)
+			{
+				const BilateralFilter_QuantizationRangeLUT_Gatherx1_KahanSummation_32f_InvokerAVX2 body(dest, temp, radiusH, radiusV, maxk, space_ofs, space_weight, range_weight);
+				parallel_for_(Range(0, size.height), body);
+			}
+			else
+			{
+				const BilateralFilter_QuantizationLUT_Gatherx1_32f_InvokerAVX2 body(dest, temp, radiusH, radiusV, maxk, space_ofs, sigma_range, sigma_space, space_weight, range_weight);
+				parallel_for_(Range(0, size.height), body);
+			}
 			break;
 		}
 		default:
@@ -8484,7 +8849,7 @@ namespace bf
 			parallel_for_(Range(0, size.height), body);
 			break;
 		}
-		case WEIGHT_VECTOR_EXP_WIHT_SPACE_LUT:
+		case WEIGHT_VECTOR_EXP_WITH_SPACE_LUT:
 		{
 #if __BF_PREVENTION__
 			const float max_digits = floor(log2(FLT_MAX / (255.f*kernelSize.area())) - log2(FLT_MIN));

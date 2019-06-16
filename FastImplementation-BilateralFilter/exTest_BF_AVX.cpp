@@ -43,7 +43,6 @@ namespace bf
 			src = imread(fname, 1);
 		}
 
-
 		Mat dest, ref;
 		src.copyTo(dest);
 		int r = cvRound(3 * ss);
@@ -122,7 +121,7 @@ namespace bf
 #endif
 				break;
 			}
-			case WEIGHT_VECTOR_EXP_WIHT_SPACE_LUT:
+			case WEIGHT_VECTOR_EXP_WITH_SPACE_LUT:
 			{
 				const string title = " EXP with space LUT";
 				ci((datatype == 0 ? "8U" : (datatype == 1 ? "32F" : "64F")) + title);
@@ -135,7 +134,7 @@ namespace bf
 				{
 					CalcTime t;
 					// normal bilateral filter
-					bilateralFilter_AVX(src, dest, Size(d, d), (double)sr, (double)ss, FILTER_RECTANGLE, BORDER_REPLICATE, WEIGHT_VECTOR_EXP_WIHT_SPACE_LUT);
+					bilateralFilter_AVX(src, dest, Size(d, d), (double)sr, (double)ss, FILTER_RECTANGLE, BORDER_REPLICATE, WEIGHT_VECTOR_EXP_WITH_SPACE_LUT);
 					st.push_back(t.getTime());
 					ci(t.getTimeString());
 				}

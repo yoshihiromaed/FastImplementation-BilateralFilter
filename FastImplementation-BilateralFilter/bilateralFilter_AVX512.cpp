@@ -8094,7 +8094,7 @@ namespace bf
 			parallel_for_(Range(0, size.height), body);
 			break;
 		}
-		case WEIGHT_VECTOR_EXP_WIHT_SPACE_LUT:
+		case WEIGHT_VECTOR_EXP_WITH_SPACE_LUT:
 		{
 #if __BF_PREVENTION__
 			const double max_digits = floor(log2(DBL_MAX / (255.*kernelSize.area())) - log2(DBL_MIN));
@@ -8398,7 +8398,7 @@ namespace bf
 			parallel_for_(Range(0, size.height), body);
 			break;
 		}
-		case WEIGHT_VECTOR_EXP_WIHT_SPACE_LUT:
+		case WEIGHT_VECTOR_EXP_WITH_SPACE_LUT:
 		{
 #if __BF_PREVENTION__
 			const float max_digits = floor(log2(FLT_MAX / (255.f*kernelSize.area())) - log2(FLT_MIN));
@@ -8750,7 +8750,7 @@ namespace bf
 			parallel_for_(Range(0, size.height), body);
 			break;
 		}
-		case WEIGHT_VECTOR_EXP_WIHT_SPACE_LUT:
+		case WEIGHT_VECTOR_EXP_WITH_SPACE_LUT:
 		{
 #if __BF_PREVENTION__
 			const float max_digits = floor(log2(FLT_MAX / (255.f*kernelSize.area())) - log2(FLT_MIN));
