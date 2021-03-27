@@ -8763,16 +8763,43 @@ namespace bf
 			float* range_weight = &_weight[0];
 
 			// initialize color-related bilateral filter coefficients
-			for (int i = 0; i < value_range; i++)
+			static int sw = 0; createTrackbar("sw", "", &sw, 1);
+			static int clip = 0; createTrackbar("clip", "", &clip, 100);
+			cout << "!" << endl;
+			if (sw == 0)
 			{
-				float aw = i * i * gauss_range_coeff;
+				for (int i = 0; i < value_range; i++)
+				{
+					float aw = i * i * gauss_range_coeff;
 #if __BF_PREVENTION__
-				aw = max(aw, EXP_ARGUMENT_CLIP_VALUE_SP);
+					aw = max(aw, EXP_ARGUMENT_CLIP_VALUE_SP);
 #endif
-				range_weight[i] = exp(aw);
+
+					range_weight[i] = exp(aw);
+
 #if __BF_POSTVENTION__
-				range_weight[i] = max(range_weight[i], FLT_MIN);
+					range_weight[i] = max(range_weight[i], FLT_MIN);
 #endif
+				}
+			}
+			if (sw == 1)
+			{
+				for (int i = 0; i < value_range; i++)
+				{
+					float aw = max((i-clip),0) * max((i-clip),0) * gauss_range_coeff;
+					//float aw = -abs(i)/ sigma_range;
+					//float aw = max(sigma_range-i, 0.f) / (sigma_range+FLT_EPSILON);
+#if __BF_PREVENTION__
+					//aw = max(aw, EXP_ARGUMENT_CLIP_VALUE_SP);
+#endif
+
+					range_weight[i] = exp(aw);
+					//range_weight[i] = aw;
+
+#if __BF_POSTVENTION__
+					range_weight[i] = max(range_weight[i], FLT_MIN);
+#endif
+				}
 			}
 
 			if (weightingMethod == WEIGHT_RANGE_QUANTIZATION_LUT_GATHER_KAHAN)
