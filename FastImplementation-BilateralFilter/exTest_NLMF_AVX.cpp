@@ -31,11 +31,11 @@ namespace nlmf
 		int isGray = 0;
 		createTrackbar("isGray", wname, &isGray, 1);
 
-		createTrackbar("tempWin", wname, &templateWindowSize, 32);
-		createTrackbar("searchWin", wname, &searchWindowSize, 128);
+		createTrackbar("tempate r", wname, &templateWindowSize, 32);
+		createTrackbar("search r", wname, &searchWindowSize, 128);
 
 		createTrackbar("h", wname, &h, 128);
-
+		int core = 8; createTrackbar("core", wname, &core, 8);
 		Mat src;
 		if (isGray == 1)
 		{
@@ -51,10 +51,9 @@ namespace nlmf
 		src.copyTo(dest);
 		int tW = 2 * templateWindowSize + 1;
 		int sW = 2 * searchWindowSize + 1;
-#if CV_AVX
+
 		//nonLocalMeansFilter_Scalar(src, ref, Size(tW, tW), Size(sW, sW), (double)h, BORDER_REPLICATE, WEIGHT_VECTOR_EXP);
 		nonLocalMeansFilter_AVX(src, ref, Size(tW, tW), Size(sW, sW), (double)h, BORDER_REPLICATE, WEIGHT_VECTOR_EXP);
-#endif
 
 		int key = 0;
 		Stat st;
@@ -62,13 +61,14 @@ namespace nlmf
 
 		while (true)
 		{
+			cv::setNumThreads(core);
 			//fname = format("kodak/kodim%02d.png",data);
 			if (data == 0) fname = "img/lena.png";
 			if (data == 1) fname = "img/lena256.png";
 			if (data == 2) fname = "img/lena128.png";
 			if (data == 3) fname = "img/lena64.png";
 			if (data == 4) fname = "img/lena32.png";
-			if (data == 5) fname = "img/lena1024.png";
+			if (data == 5) fname = "img/lena4000.png";
 
 			if (isGray == 1)
 			{
@@ -94,10 +94,10 @@ namespace nlmf
 
 			tW = 2 * templateWindowSize + 1;
 			sW = 2 * searchWindowSize + 1;
-#if CV_AVX
+
 			//nonLocalMeansFilter_Scalar(src, ref, Size(tW, tW), Size(sW, sW), (double)h, BORDER_REPLICATE, WEIGHT_VECTOR_EXP);
 			nonLocalMeansFilter_AVX(src, ref, Size(tW, tW), Size(sW, sW), (double)h, BORDER_REPLICATE, WEIGHT_VECTOR_EXP);
-#endif
+
 			dest = Mat::zeros(src.size(), src.type());
 			// test SIMD implementation
 			switch (impl)
@@ -106,7 +106,7 @@ namespace nlmf
 			{
 				const string title = " EXP";
 				ci((datatype == 0 ? "8U" : (datatype == 1 ? "32F" : "64F")) + title);
-#if CV_AVX || CV_AVX2
+
 				if (CV_AVX == 1 && CV_AVX2 == 0 && src.depth() == CV_8U)
 				{
 					ci("invalid impl");
@@ -118,16 +118,16 @@ namespace nlmf
 					st.push_back(t.getTime());
 					ci(t.getTimeString());
 				}
-#else
+
 				ci("invalid impl");
-#endif
+
 				break;
 			}
 			case WEIGHT_RANGE_LUT_SET:
 			{
 				const string title = " LUT set";
 				ci((datatype == 0 ? "8U" : (datatype == 1 ? "32F" : "64F")) + title);
-#if CV_AVX || CV_AVX2
+
 				if (CV_AVX == 1 && CV_AVX2 == 0 && src.depth() == CV_8U)
 				{
 					ci("invalid impl");
@@ -139,16 +139,16 @@ namespace nlmf
 					st.push_back(t.getTime());
 					ci(t.getTimeString());
 				}
-#else
+
 				ci("invalid impl");
-#endif
+
 				break;
 			}
 			case WEIGHT_RANGE_QUANTIZATION_LUT_SETxN:
 			{
 				const string title = " quantization LUT set x N";
 				ci((datatype == 0 ? "8U" : (datatype == 1 ? "32F" : "64F")) + title);
-#if CV_AVX || CV_AVX2
+
 				if (CV_AVX == 1 && CV_AVX2 == 0 && src.depth() == CV_8U)
 				{
 					ci("invalid impl");
@@ -160,16 +160,16 @@ namespace nlmf
 					st.push_back(t.getTime());
 					ci(t.getTimeString());
 				}
-#else
+
 				ci("invalid impl");
-#endif
+
 				break;
 			}
 			case WEIGHT_RANGE_QUANTIZATION_LUT_SETx1:
 			{
 				const string title = " quantization LUT set x 1";
 				ci((datatype == 0 ? "8U" : (datatype == 1 ? "32F" : "64F")) + title);
-#if CV_AVX || CV_AVX2
+
 				if (CV_AVX == 1 && CV_AVX2 == 0 && src.depth() == CV_8U)
 				{
 					ci("invalid impl");
@@ -181,51 +181,51 @@ namespace nlmf
 					st.push_back(t.getTime());
 					ci(t.getTimeString());
 				}
-#else
+
 				ci("invalid impl");
-#endif
+
 				break;
 			}
 			case WEIGHT_RANGE_LUT_GATHER:
 			{
 				const string title = " LUT gather";
 				ci((datatype == 0 ? "8U" : (datatype == 1 ? "32F" : "64F")) + title);
-#if CV_AVX2
+
 				CalcTime t;
 				nonLocalMeansFilter_AVX(src, dest, Size(tW, tW), Size(sW, sW), (double)h, BORDER_REPLICATE, WEIGHT_RANGE_LUT_GATHER);
 				st.push_back(t.getTime());
 				ci(t.getTimeString());
-#else
+
 				ci("invalid impl");
-#endif
+
 				break;
 			}
 			case WEIGHT_RANGE_QUANTIZATION_LUT_GATHERxN:
 			{
 				const string title = " quantization LUT gather x N";
 				ci((datatype == 0 ? "8U" : (datatype == 1 ? "32F" : "64F")) + title);
-#if CV_AVX2
+
 				CalcTime t;
 				nonLocalMeansFilter_AVX(src, dest, Size(tW, tW), Size(sW, sW), (double)h, BORDER_REPLICATE, WEIGHT_RANGE_QUANTIZATION_LUT_GATHERxN);
 				st.push_back(t.getTime());
 				ci(t.getTimeString());
-#else
+
 				ci("invalid impl");
-#endif
+
 				break;
 			}
 			case WEIGHT_RANGE_QUANTIZATION_LUT_GATHERx1:
 			{
 				const string title = " quantization LUT gather x 1";
 				ci((datatype == 0 ? "8U" : (datatype == 1 ? "32F" : "64F")) + title);
-#if CV_AVX2
+
 				CalcTime t;
 				nonLocalMeansFilter_AVX(src, dest, Size(tW, tW), Size(sW, sW), (double)h, BORDER_REPLICATE, WEIGHT_RANGE_QUANTIZATION_LUT_GATHERx1);
 				st.push_back(t.getTime());
 				ci(t.getTimeString());
-#else
+
 				ci("invalid impl");
-#endif
+
 				break;
 			}
 			default:

@@ -2,6 +2,7 @@
 #include "test.h"
 #include "filter.h"
 #include <cmath>
+#include <fstream>
 #include "color.h"
 
 using namespace cv;

@@ -76,7 +76,7 @@ int main(const int argc, char **argv)
 		return 0;
 	}
 	//bilateral filter
-	//if (false)
+	if (false)
 	{
 		if (checkHardwareSupport(CV_CPU_AVX_512F))
 		{
@@ -102,7 +102,7 @@ int main(const int argc, char **argv)
 		return 0;
 	}
 	//non local means filter
-	if (false)
+	//if (false)
 	{
 		if (checkHardwareSupport(CV_CPU_AVX_512F))
 		{

@@ -5,7 +5,7 @@
 #undef CV_AVX512
 #endif
 
-#define CV_AVX512 1
+//#define CV_AVX512 1
 #if CV_AVX512 == 1
 #define __AVX512__
 #endif
